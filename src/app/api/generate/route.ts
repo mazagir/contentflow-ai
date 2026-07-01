@@ -140,6 +140,7 @@ export async function POST(request: NextRequest) {
       context: context.trim(),
       tone: tone?.trim() || null,
       engagement_lever: validatedEngagementLever,
+      content,
     });
 
     return NextResponse.json({

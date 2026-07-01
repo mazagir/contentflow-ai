@@ -10,7 +10,11 @@ interface Profile {
   paymentMethod: string;
 }
 
-export default function UserBar() {
+interface UserBarProps {
+  creditsVersion?: number;
+}
+
+export default function UserBar({ creditsVersion = 0 }: UserBarProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +33,7 @@ export default function UserBar() {
         setLoading(false);
       }
     });
-  }, []);
+  }, [creditsVersion]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -47,7 +51,9 @@ export default function UserBar() {
       <div className="text-sm text-zinc-400">
         <span className="text-zinc-200">{user.email}</span>
         <span className="mx-2 text-zinc-700">·</span>
-        <span className="capitalize text-brand-400">{profile?.plan ?? "free"}</span>
+        <span className="capitalize text-brand-400">
+          {profile?.plan ?? "free"}
+        </span>
         {!isPaid && (
           <>
             <span className="mx-2 text-zinc-700">·</span>

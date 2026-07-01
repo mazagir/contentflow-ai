@@ -10,6 +10,7 @@ import UserBar from "@/components/UserBar";
 export default function AppShell() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [creditsVersion, setCreditsVersion] = useState(0);
 
   useEffect(() => {
     const supabase = createClient();
@@ -31,8 +32,10 @@ export default function AppShell() {
     <>
       {user ? (
         <>
-          <UserBar />
-          <ContentForm />
+          <UserBar creditsVersion={creditsVersion} />
+          <ContentForm
+            onCreditsUpdate={() => setCreditsVersion((v) => v + 1)}
+          />
         </>
       ) : (
         <AuthPanel />

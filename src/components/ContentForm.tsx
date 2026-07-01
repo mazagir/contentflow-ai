@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import {
@@ -32,20 +33,41 @@ const INITIAL_STATE = {
   error: "",
 };
 
-export default function ContentForm() {
+interface Generation {
+  id: string;
+  niche: string;
+  content_type: string;
+  tone: string | null;
+  engagement_lever: string | null;
+  created_at: string;
+  content: string | null;
+}
+
+interface ContentFormProps {
+  onCreditsUpdate?: () => void;
+}
+
+export default function ContentForm({ onCreditsUpdate }: ContentFormProps) {
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [niche, setNiche] = useState(INITIAL_STATE.niche);
-  const [contentType, setContentType] = useState<ContentType>(INITIAL_STATE.contentType);
+  const [contentType, setContentType] = useState<ContentType>(
+    INITIAL_STATE.contentType
+  );
   const [context, setContext] = useState(INITIAL_STATE.context);
   const [tone, setTone] = useState(INITIAL_STATE.tone);
-  const [engagementLever, setEngagementLever] = useState<EngagementLever>(INITIAL_STATE.engagementLever);
+  const [engagementLever, setEngagementLever] = useState<EngagementLever>(
+    INITIAL_STATE.engagementLever
+  );
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("none");
+  const [showHistory, setShowHistory] = useState(false);
+  const [generations, setGenerations] = useState<Generation[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -88,6 +110,7 @@ export default function ContentForm() {
       }
 
       setResult(data.content);
+      onCreditsUpdate?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
     } finally {
@@ -110,6 +133,26 @@ export default function ContentForm() {
     await navigator.clipboard.writeText(result);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function toggleHistory() {
+    if (generations.length > 0) {
+      setShowHistory(!showHistory);
+      return;
+    }
+
+    setShowHistory(true);
+    setHistoryLoading(true);
+
+    try {
+      const res = await fetch("/api/generations");
+      const data = await res.json();
+      if (Array.isArray(data)) setGenerations(data);
+    } catch {
+      /* ignore */
+    } finally {
+      setHistoryLoading(false);
+    }
   }
 
   if (!authChecked) {
@@ -265,7 +308,7 @@ export default function ContentForm() {
                 onClick={handleCopy}
                 className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-brand-500 hover:text-brand-400"
               >
-                {copied ? "¡Copiado!" : "Copiar"}
+                {copied ? "Copiado!" : "Copiar"}
               </button>
             )}
           </div>
@@ -281,9 +324,9 @@ export default function ContentForm() {
                 </div>
               </div>
             ) : result ? (
-              <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-zinc-200">
-                {result}
-              </pre>
+              <div className="prose prose-invert max-w-none prose-headings:text-zinc-100 prose-strong:text-brand-300 prose-a:text-brand-400 prose-code:text-brand-300 prose-li:text-zinc-200">
+                <ReactMarkdown>{result}</ReactMarkdown>
+              </div>
             ) : (
               <div className="flex h-full min-h-[380px] items-center justify-center text-center">
                 <p className="max-w-xs text-sm text-zinc-600">
@@ -294,6 +337,90 @@ export default function ContentForm() {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="mt-12">
+        <button
+          type="button"
+          onClick={toggleHistory}
+          className="flex w-full items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-3 text-left transition hover:border-zinc-700"
+        >
+          <span className="text-sm font-medium text-zinc-300">
+            Historial de generaciones
+          </span>
+          <span className="text-xs text-zinc-500">
+            {showHistory ? "Ocultar" : "Mostrar"}
+          </span>
+        </button>
+
+        {showHistory && (
+          <div className="mt-4 space-y-3">
+            {historyLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+              </div>
+            ) : generations.length === 0 ? (
+              <p className="py-6 text-center text-sm text-zinc-600">
+                Aún no tienes generaciones.
+              </p>
+            ) : (
+              generations.map((gen) => (
+                <details
+                  key={gen.id}
+                  className="group rounded-xl border border-zinc-800 bg-zinc-900/30"
+                >
+                  <summary className="cursor-pointer px-5 py-3 text-sm text-zinc-300 transition hover:text-zinc-100">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium capitalize">
+                        {gen.niche}
+                      </span>
+                      <span className="text-xs text-zinc-600">
+                        {new Date(gen.created_at).toLocaleDateString("es-ES", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex gap-2 text-xs text-zinc-600">
+                      <span>
+                        {
+                          CONTENT_TYPE_LABELS[
+                            gen.content_type as ContentType
+                          ]
+                        }
+                      </span>
+                      {gen.engagement_lever && (
+                        <>
+                          <span>·</span>
+                          <span className="capitalize">
+                            {
+                              ENGAGEMENT_LEVER_LABELS[
+                                gen.engagement_lever as EngagementLever
+                              ]
+                            }
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </summary>
+                  <div className="border-t border-zinc-800 px-5 py-4">
+                    {gen.content ? (
+                      <div className="prose prose-invert max-w-none prose-headings:text-zinc-100 prose-strong:text-brand-300 prose-a:text-brand-400 prose-code:text-brand-300 text-sm leading-relaxed">
+                        <ReactMarkdown>{gen.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-zinc-600">
+                        Contenido no disponible
+                      </p>
+                    )}
+                  </div>
+                </details>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </>
   );

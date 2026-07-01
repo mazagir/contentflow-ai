@@ -22,6 +22,7 @@ create table if not exists public.generations (
   context text not null,
   tone text,
   engagement_lever text,
+  content text,
   created_at timestamptz not null default now()
 );
 
