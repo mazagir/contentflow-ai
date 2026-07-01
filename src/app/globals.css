@@ -16,11 +16,72 @@
   }
 }
 
-@layer utilities {
+@layer components {
+  .glass-card {
+    @apply rounded-2xl border border-white/5 bg-white/[0.03] backdrop-blur-xl;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:border-white/10 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-brand-500/5;
+  }
+
   .gradient-border {
     background:
       linear-gradient(#09090b, #09090b) padding-box,
       linear-gradient(135deg, #22c55e, #16a34a, #15803d) border-box;
     border: 1px solid transparent;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-400 via-brand-300 to-brand-500 bg-clip-text text-transparent;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition-all duration-200 focus:border-brand-500/50 focus:bg-white/[0.07] focus:ring-1 focus:ring-brand-500/30;
+  }
+
+  .btn-primary {
+    @apply w-full rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition-all duration-200 hover:from-brand-500 hover:to-brand-400 hover:shadow-brand-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-brand-600 disabled:hover:to-brand-500 disabled:active:scale-100;
+  }
+
+  .btn-secondary {
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-medium text-zinc-300 transition-all duration-200 hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-[0.98];
+  }
+
+  .badge-plan {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium;
+  }
+
+  .badge-plan-free {
+    @apply badge-plan border-zinc-700 bg-zinc-800/50 text-zinc-400;
+  }
+
+  .badge-plan-premium {
+    @apply badge-plan border-brand-500/30 bg-brand-500/10 text-brand-400;
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .typing-animation {
+    overflow: hidden;
+    animation: typing 0.5s ease-out;
   }
 }
